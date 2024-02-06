@@ -11,5 +11,9 @@
     "email": "adriel.fsantos@outlook.com",
     "url": "https://adrielfsantos.vercel.app"
   },
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.11.16",
+    "typescript": "^5.3.3"
+  }
 }
