@@ -1,23 +1,10 @@
 import fastify from 'fastify';
-import { z } from 'zod';
-import { prisma } from '../lib/prisma';
+import { createPoll } from './routes/create-poll';
 
 const app = fastify();
 
-app.post('/polls', async (request, reply) => {
-  const { title } = z
-    .object({
-      title: z.string(),
-    })
-    .parse(request.body);
+// Register routes
+app.register(createPoll);
 
-  const poll = await prisma.poll.create({
-    data: {
-      title,
-    },
-  });
-
-  return reply.status(201).send({ pollId: poll.id });
-});
-
+// Start server
 app.listen({ port: 3333 }).then(() => console.log('✅ HTTP SERVER RUNNING'));
