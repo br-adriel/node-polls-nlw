@@ -1,0 +1,15 @@
+{
+  "name": "polls",
+  "version": "1.0.0",
+  "description": "Backend for a polls application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": {
+    "name": "Adriel Santos",
+    "email": "adriel.fsantos@outlook.com",
+    "url": "https://adrielfsantos.vercel.app"
+  },
+  "license": "ISC"
+}
