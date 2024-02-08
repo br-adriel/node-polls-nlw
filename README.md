@@ -16,7 +16,7 @@ Instruções para executar o projeto localmente
 
 ### Pré requisitos
 
-Para executar esse projeto você precisa ter o instalado em sua máquina:
+Para executar esse projeto você precisa ter instalado em sua máquina:
 
 - [NodeJS](https://nodejs.org/en)
 - [Docker](https://docs.docker.com/get-docker/)
