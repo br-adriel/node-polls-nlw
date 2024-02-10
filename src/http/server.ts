@@ -5,10 +5,14 @@ import { createPoll } from './routes/create-poll';
 import { getPoll } from './routes/get-poll';
 import { voteOnPoll } from './routes/vote-on-poll';
 import { pollReults } from './ws/poll-results';
+import fastifyCors from '@fastify/cors';
 
 const app = fastify();
 
 // register modules
+app.register(fastifyCors, {
+  origin: true,
+});
 app.register(fastifyCookie, {
   secret: 'node-polls-nlw',
   hook: 'onRequest',
