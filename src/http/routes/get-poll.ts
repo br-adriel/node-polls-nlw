@@ -1,54 +1,66 @@
 import { FastifyInstance } from 'fastify';
-import { z } from 'zod';
+import { ZodError, z } from 'zod';
 import { prisma } from '../../lib/prisma';
 import { redis } from '../../lib/redis';
 
 export async function getPoll(app: FastifyInstance) {
   app.get('/polls/:pollId', async (request, reply) => {
-    const getPollParams = z
-      .object({
-        pollId: z.string().uuid(),
-      })
-      .parse(request.params);
+    try {
+      const getPollParams = z
+        .object({
+          pollId: z.string().uuid(),
+        })
+        .parse(request.params);
 
-    const { pollId } = getPollParams;
-    const poll = await prisma.poll.findUnique({
-      include: {
-        options: {
-          select: {
-            id: true,
-            title: true,
+      const { pollId } = getPollParams;
+      const poll = await prisma.poll.findUnique({
+        include: {
+          options: {
+            select: {
+              id: true,
+              title: true,
+            },
           },
         },
-      },
-      where: {
-        id: pollId,
-      },
-    });
+        where: {
+          id: pollId,
+        },
+      });
 
-    if (!poll) return reply.status(404).send({ message: 'Poll not found' });
+      if (!poll) return reply.status(404).send({ message: 'Poll not found' });
 
-    const result = await redis.zrange(pollId, 0, -1, 'WITHSCORES');
-    const votes = result.reduce((obj, line, index) => {
-      if (index % 2 === 0) {
-        const score = result[index + 1];
-        Object.assign(obj, { [line]: Number(score) });
+      const result = await redis.zrange(pollId, 0, -1, 'WITHSCORES');
+      const votes = result.reduce((obj, line, index) => {
+        if (index % 2 === 0) {
+          const score = result[index + 1];
+          Object.assign(obj, { [line]: Number(score) });
+        }
+        return obj;
+      }, {} as Record<string, number>);
+
+      return reply.send({
+        poll: {
+          id: poll.id,
+          title: poll.title,
+          options: poll.options.map((option) => {
+            return {
+              id: option.id,
+              title: option.title,
+              score: option.id in votes ? votes[option.id] : 0,
+            };
+          }),
+        },
+      });
+    } catch (error: any) {
+      if (error instanceof ZodError) {
+        switch (error.issues[0].code) {
+          case 'invalid_type':
+          case 'invalid_string':
+            return reply.status(400).send({ message: 'ID inválido' });
+        }
+        return reply.status(400).send({ message: error.issues[0].message });
       }
-      return obj;
-    }, {} as Record<string, number>);
-
-    return reply.send({
-      poll: {
-        id: poll.id,
-        title: poll.title,
-        options: poll.options.map((option) => {
-          return {
-            id: option.id,
-            title: option.title,
-            score: option.id in votes ? votes[option.id] : 0,
-          };
-        }),
-      },
-    });
+      return reply.status(500).send();
+    }
   });
 }
